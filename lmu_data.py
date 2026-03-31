@@ -11,6 +11,8 @@ import mmap
 
 
 class LMUConstants:
+    """LMU constants"""
+
     LMU_SHARED_MEMORY_FILE: str = "LMU_Data"
     LMU_PROCESS_NAME: str = "Le Mans Ultimate"
 
@@ -66,7 +68,10 @@ class LMUWheel(ctypes.Structure):
         ("mToe", ctypes.c_double),                          # current toe angle w.r.t. the vehicle
         ("mTireCarcassTemperature", ctypes.c_double),       # rough average of temperature samples from carcass (Kelvin)
         ("mTireInnerLayerTemperature", ctypes.c_double*3),  # rough average of temperature samples from innermost layer of rubber (before carcass) (Kelvin)
-        ("mExpansion", ctypes.c_ubyte*24),                  # for future use
+        ("mOptimalTemp", ctypes.c_float),                   # optimal temperature (Celsius)
+        ("mCompoundIndex", ctypes.c_ubyte),                 # compound index count from available compound list for specific car & track
+        ("mCompoundType", ctypes.c_ubyte),                  # 0 = soft, 1 = medium, 2 = hard, 3 = wet
+        ("mExpansion", ctypes.c_ubyte*18),                  # for future use
     ]
 
 
@@ -149,7 +154,42 @@ class LMUVehicleTelemetry(ctypes.Structure):
         ("mElectricBoostMotorTemperature", ctypes.c_double),  # current temperature of boost motor
         ("mElectricBoostWaterTemperature", ctypes.c_double),  # current water temperature of boost motor cooler if present (0 otherwise)
         ("mElectricBoostMotorState", ctypes.c_ubyte),         # 0=unavailable 1=inactive, 2=propulsion, 3=regeneration
-        ("mExpansion", ctypes.c_ubyte*(111-8)),               # for future use (note that the slot ID has been moved to mID above)
+        ("mLapInvalidated", ctypes.c_bool),
+        # Activation state
+        ("mABSActive", ctypes.c_bool),
+        ("mTCActive", ctypes.c_bool),
+        ("mSpeedLimiterActive", ctypes.c_bool),
+        # Onboard setting, max adjustable steps
+        ("mWiperState", ctypes.c_uint8),
+        ("mTC", ctypes.c_uint8),
+        ("mTCMax", ctypes.c_uint8),
+        ("mTCSlip", ctypes.c_uint8),
+        ("mTCSlipMax", ctypes.c_uint8),
+        ("mTCCut", ctypes.c_uint8),
+        ("mTCCutMax", ctypes.c_uint8),
+        ("mABS", ctypes.c_uint8),
+        ("mABSMax", ctypes.c_uint8),
+        ("mMotorMap", ctypes.c_uint8),
+        ("mMotorMapMax", ctypes.c_uint8),
+        ("mMigration", ctypes.c_uint8),
+        ("mMigrationMax", ctypes.c_uint8),
+        ("mFrontAntiSway", ctypes.c_uint8),
+        ("mFrontAntiSwayMax", ctypes.c_uint8),
+        ("mRearAntiSway", ctypes.c_uint8),
+        ("mRearAntiSwayMax", ctypes.c_uint8),
+        ("mLiftAndCoastProgress", ctypes.c_uint8),
+        ("mTrackLimitsSteps", ctypes.c_uint8),                # Normalized track limits points (TrackLimitPoints * TrackLimitStepsPerPoint)
+        ("mRegen", ctypes.c_float),                           # kW
+        ("mStateOfCharge", ctypes.c_float),                   # battery state of charge (percent)
+        ("mVirtualEnergy", ctypes.c_float),                   # fraction
+        ("mTimeGapCarAhead", ctypes.c_float),
+        ("mTimeGapCarBehind", ctypes.c_float),
+        ("mTimeGapPlaceAhead", ctypes.c_float),
+        ("mTimeGapPlaceBehind", ctypes.c_float),
+        ("mVehicleModel", ctypes.c_char*30),                  # brand & model name
+        ("mVehicleClass", ctypes.c_uint8),                    # full class name, may not be same as mVehicleClass
+        ("mVehicleChampionship", ctypes.c_uint8),             # championship & year
+        ("mExpansion", ctypes.c_ubyte*20),                    # for future use (note that the slot ID has been moved to mID above)
         ("mWheels", LMUWheel*4),                              # wheel info (0=front left, 1=front right, 2=rear left, 3=rear right)
     ]
 
@@ -280,7 +320,32 @@ class LMUScoringInfo(ctypes.Structure):
         ("mServerName", ctypes.c_char*32),        # name of the server
         ("mStartET", ctypes.c_float),             # start time (seconds since midnight) of the event
         ("mAvgPathWetness", ctypes.c_double),     # average wetness on main path 0.0-1.0
-        ("mExpansion", ctypes.c_ubyte*200),       # future use
+        ("mSessionTimeRemaining", ctypes.c_float),
+        ("mTimeOfDay", ctypes.c_float),
+        ("mIsFixedSetup", ctypes.c_bool),
+        # Track Grip (Rubber) Level (can be washed away in rain):
+        # 0 = green
+        # 1 = low
+        # 2 = medium
+        # 3 = high (heavy)
+        # 4 = saturated
+        ("mTrackGripLevel", ctypes.c_uint8),
+        # Sky type:
+        # 0 = clear
+        # 1 = light clouds
+        # 2 = partially cloudy
+        # 3 = mostly cloudy
+        # 4 = overcast
+        # 5 = cloudy & drizzle
+        # 6 = cloudy & light rain
+        # 7 = overcast & light rain
+        # 8 = overcast & rain
+        # 9 = overcast & heavy rain
+        # 10 = overcast & storm
+        ("mCloudCoverage", ctypes.c_uint8),
+        ("mTrackLimitsStepsPerPenalty", ctypes.c_uint8),
+        ("mTrackLimitsStepsPerPoint", ctypes.c_uint8),
+        ("mExpansion", ctypes.c_ubyte*187),       # future use
         ("mVehiclePointer", ctypes.c_ubyte*8),    # (pointer) keeping this at the end of the structure to make it easier to replace in future versions
     ]
 
@@ -435,82 +500,3 @@ class SimInfo:
 
     def __del__(self):
         self.close()
-
-
-def test():
-    """Example usage"""
-    info = SimInfo()
-
-    # Uncomment to save raw memory data to file
-    # info.save("LMU_SHARED_MEMORY_FILE.txt")
-
-    generic_data = info.LMUData.generic
-    scor_data = info.LMUData.scoring
-    tele_data = info.LMUData.telemetry
-
-    player_index = tele_data.playerVehicleIdx
-    selected_player_index = 0
-
-    player_scor_data = scor_data.vehScoringInfo[selected_player_index]
-    player_tele_data = tele_data.telemInfo[selected_player_index]
-
-    print("-"*40)
-    print("Game info:")
-    print("Version:", generic_data.gameVersion)
-    print("FFB torque:", generic_data.FFBTorque)
-    print("HWND:", generic_data.appInfo.mAppWindow)
-    print("Screen width:", generic_data.appInfo.mWidth)
-    print("Screen height:", generic_data.appInfo.mHeight)
-    print("Refresh rate:", generic_data.appInfo.mRefreshRate)
-    print("Options location:", generic_data.appInfo.mOptionsLocation)
-    print("Options page:", generic_data.appInfo.mOptionsPage)
-
-    print("-"*40)
-    print("Path info:")
-    print("User data:", info.LMUData.paths.userData)
-    print("Custom variables:", info.LMUData.paths.customVariables)
-    print("Steward results:", info.LMUData.paths.stewardResults)
-    print("Player profile:", info.LMUData.paths.playerProfile)
-    print("Plugins folder:", info.LMUData.paths.pluginsFolder)
-
-    print("-"*40)
-    print("Scoring info:")
-    print("Track name:", scor_data.scoringInfo.mTrackName)
-    print("Local player name:", scor_data.scoringInfo.mPlayerName)
-    print("Local player index:", player_index)
-    print("Setting name:", scor_data.scoringInfo.mPlrFileName)
-    print("Total vehicles:", scor_data.scoringInfo.mNumVehicles)
-
-    print("-"*40)
-    print("Selected Player scoring info:")
-    print("Slot ID:", player_scor_data.mID)
-    print("Driver name:", player_scor_data.mDriverName)
-    print("VEH file:", player_scor_data.mVehFilename)
-    print("Is local player:", player_scor_data.mIsPlayer)
-
-    print("-"*40)
-    print("Selected player telemetry info:")
-    print("Slot ID:", player_tele_data.mID)
-    print("Vehicle:", player_tele_data.mVehicleName)
-    print("Gear:", player_tele_data.mGear)
-    print("Throttle:", player_tele_data.mUnfilteredThrottle)
-    print("Brake:", player_tele_data.mUnfilteredBrake)
-    print("Clutch:", player_tele_data.mUnfilteredClutch)
-
-    print("-"*40)
-    print("Event Info")
-    print("SME_ENTER:", generic_data.events.SME_ENTER)
-    print("SME_EXIT:", generic_data.events.SME_EXIT)
-    print("SME_SET_ENVIRONMENT:", generic_data.events.SME_SET_ENVIRONMENT)
-    print("SME_UPDATE_SCORING:", generic_data.events.SME_UPDATE_SCORING)
-    print("SME_UPDATE_TELEMETRY:", generic_data.events.SME_UPDATE_TELEMETRY)
-
-    player_scor_data = None
-    player_tele_data = None
-    generic_data = None
-    scor_data = None
-    tele_data = None
-
-
-if __name__ == "__main__":
-    test()

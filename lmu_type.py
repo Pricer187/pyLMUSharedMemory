@@ -56,6 +56,9 @@ class LMUWheel(_NOINIT):
     mToe: float
     mTireCarcassTemperature: float
     mTireInnerLayerTemperature: tuple[float, float, float]
+    mOptimalTemp: float
+    mCompoundIndex: int
+    mCompoundType: int
     mExpansion: tuple[int, ...]
 
 
@@ -133,6 +136,39 @@ class LMUVehicleTelemetry(_NOINIT):
     mElectricBoostMotorTemperature: float
     mElectricBoostWaterTemperature: float
     mElectricBoostMotorState: int
+    mLapInvalidated: bool
+    mABSActive: bool
+    mTCActive: bool
+    mSpeedLimiterActive: bool
+    mWiperState: int
+    mTC: int
+    mTCMax: int
+    mTCSlip: int
+    mTCSlipMax: int
+    mTCCut: int
+    mTCCutMax: int
+    mABS: int
+    mABSMax: int
+    mMotorMap: int
+    mMotorMapMax: int
+    mMigration: int
+    mMigrationMax: int
+    mFrontAntiSway: int
+    mFrontAntiSwayMax: int
+    mRearAntiSway: int
+    mRearAntiSwayMax: int
+    mLiftAndCoastProgress: int
+    mTrackLimitsSteps: int
+    mRegen: float
+    mStateOfCharge: float
+    mVirtualEnergy: float
+    mTimeGapCarAhead: float
+    mTimeGapCarBehind: float
+    mTimeGapPlaceAhead: float
+    mTimeGapPlaceBehind: float
+    mVehicleModel: bytes
+    mVehicleClass: int
+    mVehicleChampionship: int
     mExpansion: tuple[int, ...]
     mWheels: tuple[LMUWheel, LMUWheel, LMUWheel, LMUWheel]
 
@@ -190,7 +226,7 @@ class LMUVehicleScoring(_NOINIT):
     mBestLapSector1: float
     mBestLapSector2: float
     mSteamID: int
-    mVehFilename: str
+    mVehFilename: bytes
     mAttackMode: int
     mFuelFraction: float
     mDRSState: bool
@@ -204,7 +240,7 @@ class LMUScoringInfo(_NOINIT):
     mEndET: float
     mMaxLaps: int
     mLapDist: float
-    pointer1: tuple[int, ...]
+    mResultsStreamPointer: tuple[int, ...]
     mNumVehicles: int
     mGamePhase: int
     mYellowFlagState: int
@@ -229,8 +265,15 @@ class LMUScoringInfo(_NOINIT):
     mServerName: bytes
     mStartET: float
     mAvgPathWetness: float
+    mSessionTimeRemaining: float
+    mTimeOfDay: float
+    mIsFixedSetup: bool
+    mTrackGripLevel: int
+    mCloudCoverage: int
+    mTrackLimitsStepsPerPenalty: int
+    mTrackLimitsStepsPerPoint: int
     mExpansion: tuple[int, ...]
-    pointer2: tuple[int, ...]
+    mVehiclePointer: tuple[int, ...]
 
 
 class LMUApplicationState(_NOINIT):
@@ -240,7 +283,7 @@ class LMUApplicationState(_NOINIT):
     mRefreshRate: int
     mWindowed: int
     mOptionsLocation: int
-    mOptionsPage: str
+    mOptionsPage: bytes
     mExpansion: tuple[int, ...]
 
 
@@ -248,7 +291,7 @@ class LMUScoringData(_NOINIT):
     scoringInfo: LMUScoringInfo
     scoringStreamSize: int
     vehScoringInfo: tuple[LMUVehicleScoring, ...]
-    scoringStream: str
+    scoringStream: bytes
 
 
 class LMUTelemetryData(_NOINIT):
@@ -259,11 +302,11 @@ class LMUTelemetryData(_NOINIT):
 
 
 class LMUPathData(_NOINIT):
-    userData: str
-    customVariables: str
-    stewardResults: str
-    playerProfile: str
-    pluginsFolder: str
+    userData: bytes
+    customVariables: bytes
+    stewardResults: bytes
+    playerProfile: bytes
+    pluginsFolder: bytes
 
 
 class LMUEvent(_NOINIT):
