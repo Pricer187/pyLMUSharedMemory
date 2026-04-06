@@ -160,7 +160,7 @@ class LMUVehicleTelemetry(ctypes.Structure):
         ("mTCActive", ctypes.c_bool),
         ("mSpeedLimiterActive", ctypes.c_bool),
         # Onboard setting, max adjustable steps
-        ("mWiperState", ctypes.c_uint8),
+        ("mWiperState", ctypes.c_uint8),                      # 0=off, 1=auto, 2=slow, 3=fast
         ("mTC", ctypes.c_uint8),
         ("mTCMax", ctypes.c_uint8),
         ("mTCSlip", ctypes.c_uint8),

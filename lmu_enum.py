@@ -210,6 +210,15 @@ class LMUIgnitionStarterStatus(enum.Enum):
     IgnitionAndStarter = 2
 
 
+class LMUWiperStatus(enum.Enum):
+    """Wiper status (mWiperState)"""
+
+    Off = 0
+    Auto = 1
+    Slow = 2
+    Fast = 3
+
+
 class LMUWheelIndex(enum.Enum):
     """Wheel index reference for 'LMUWheel'"""
 

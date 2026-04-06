@@ -105,7 +105,7 @@ def player_telemetry_info(data: lmu_data.LMUVehicleTelemetry):
     print("mTCActive:", data.mTCActive)
     print("mSpeedLimiterActive:", data.mSpeedLimiterActive)
 
-    print("mWiperState", data.mWiperState)
+    print("mWiperState", lmu_enum.LMUWiperStatus(data.mWiperState))
     print("mTC:", data.mTC)
     print("mTCMax:", data.mTCMax)
     print("mTCSlip:", data.mTCSlip)
