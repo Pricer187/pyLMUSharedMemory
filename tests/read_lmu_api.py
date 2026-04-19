@@ -149,11 +149,19 @@ def player_wheel_info(data: list[lmu_data.LMUWheel]):
         print("mCompoundType:", lmu_enum.LMUCompoundType(data[index].mCompoundType))
 
 
+def vehicle_model_info(data: list[lmu_data.LMUVehicleTelemetry], total_vehicles: int):
+    print("Available vehicle model list from session:")
+    for model in set(data[i].mVehicleModel for i in range(total_vehicles)):
+        print(model)
+
+
 def test():
     """Example usage"""
     compare_struct_size()
 
-    print("-"*40)
+    separator = "-" * 40
+
+    print(separator)
 
     info = lmu_data.SimInfo()
 
@@ -167,33 +175,37 @@ def test():
     print("Local player index:", player_index)
     print("Selected player index:", selected_player_index)
 
-    print("-"*40)
+    print(separator)
 
     event_info(info.LMUData.generic.events)
 
-    print("-"*40)
+    print(separator)
 
     generic_info(info.LMUData.generic)
 
-    print("-"*40)
+    print(separator)
 
     path_info(info.LMUData.paths)
 
-    print("-"*40)
+    print(separator)
 
     scoring_info(info.LMUData.scoring.scoringInfo)
 
-    print("-"*40)
+    print(separator)
 
     player_scoring_info(info.LMUData.scoring.vehScoringInfo[selected_player_index])
 
-    print("-"*40)
+    print(separator)
 
     player_telemetry_info(info.LMUData.telemetry.telemInfo[selected_player_index])
 
-    print("-"*40)
+    print(separator)
 
     player_wheel_info(info.LMUData.telemetry.telemInfo[selected_player_index].mWheels)
+
+    print(separator)
+
+    vehicle_model_info(info.LMUData.telemetry.telemInfo, info.LMUData.scoring.scoringInfo.mNumVehicles)
 
 
 if __name__ == "__main__":
